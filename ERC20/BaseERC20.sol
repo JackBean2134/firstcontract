@@ -46,18 +46,26 @@ contract BaseERC20 {
     //     emit Approval(msg.sender, _spender, _value); 
     //     return true; 
     // }存在授权重放竞争漏洞
- function increaseAllowance(address _spender, uint256 _addedValue) public returns(bool){
-    allowances[msg.sender][_spender] += _addedValue;
-    emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
-    return true;
-}
-function decreaseAllowance(address _spender, uint256 _subtractedValue) public returns(bool){
-    uint256 currentAllowance = allowances[msg.sender][_spender];
-    require(currentAllowance >= _subtractedValue, "ERC20: decreased allowance below zero");
-    allowances[msg.sender][_spender] -= _subtractedValue;
-    emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
-    return true;
-}
+     function approve(address _spender, uint256 _value) public returns (bool success) {
+        // write your code here
+        allowances[msg.sender][_spender] = _value;
+        emit Approval(msg.sender, _spender, _value); 
+        return true; 
+    }
+    // 增量授权，规避approve重放竞争漏洞
+    function increaseAllowance(address _spender, uint256 _addedValue) public returns(bool){
+        allowances[msg.sender][_spender] += _addedValue;
+        emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
+        return true;
+    }
+
+    function decreaseAllowance(address _spender, uint256 _subtractedValue) public returns(bool){
+        uint256 currentAllowance = allowances[msg.sender][_spender];
+        require(currentAllowance >= _subtractedValue, "ERC20: decreased allowance below zero");
+        allowances[msg.sender][_spender] -= _subtractedValue;
+        emit Approval(msg.sender, _spender, allowances[msg.sender][_spender]);
+        return true;
+    }
 
     function allowance(address _owner, address _spender) public view returns (uint256 remaining) {   
         // write your code here     
