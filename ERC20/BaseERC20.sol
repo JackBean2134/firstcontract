@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
+// 接收代币回调接口
+interface IERC20TokensReceived {
+    function tokensReceived(address from, uint256 value) external returns (bool);
+}
 contract BaseERC20 {
     string public name; 
     string public symbol; 
@@ -70,5 +74,24 @@ contract BaseERC20 {
     function allowance(address _owner, address _spender) public view returns (uint256 remaining) {   
         // write your code here     
         return allowances[_owner][_spender];
+    }
+     function transferWithCallback(address _to,uint256 _value)external returns(bool) {
+        //基础转账校验
+        require(balances[msg.sender]>= _value,"ERC20: transfer amount exceeds balance");
+
+        //执行转账
+        balances[msg.sender] -= _value;
+        balances[_to] += _value;
+        emit Transfer(msg.sender, _to, _value);
+
+        //判断目标是否为合约地址
+        if(_to.code.length >0){
+            //调用目标合约 tokensReceived
+            bool ok = IERC20TokensReceived(_to).tokensReceived(msg.sender,_value);
+            require(ok,"transferWithCallback: tokensReceived rejected");
+        }
+        //如果是EOA账户 直接结束 不调用回调
+        return true;
+
     }
 }
