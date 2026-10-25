@@ -44,10 +44,13 @@ contract Bank {
         // 取出当前top3
         address[3] memory temp = top3Users;
 
-        // 如果用户已经在排行榜里，先移除旧位置
+        // 如果用户已经在排行榜里，先移除旧位置，并向前压缩空位
         for(uint i = 0; i < 3; i++){
             if(temp[i] == user){
-                temp[i] = address(0);
+                for(uint j = i; j < 2; j++){
+                    temp[j] = temp[j+1];
+                }
+                temp[2] = address(0);
                 break;
             }
         }
